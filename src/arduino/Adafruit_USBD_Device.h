@@ -44,7 +44,7 @@ private:
 
   // Configuration descriptor
   uint8_t *_desc_cfg;
-  uint8_t _desc_cfg_buffer[256];
+  uint8_t _desc_cfg_buffer[256*4];
   uint16_t _desc_cfg_len;
   uint16_t _desc_cfg_maxlen;
 
