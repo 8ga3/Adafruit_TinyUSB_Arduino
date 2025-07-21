@@ -954,6 +954,63 @@ static int handle_video_ctl_cs_req(uint8_t rhport, uint8_t stage,
   return VIDEO_ERROR_INVALID_REQUEST;
 }
 
+static int handle_video_ctl_processing_req(uint8_t rhport, uint8_t stage,
+                                           tusb_control_request_t const *request,
+                                           uint_fast8_t ctl_idx)
+{
+  videod_interface_t *self = &_videod_itf[ctl_idx];
+  static int16_t _brightness_cur  = 0; // インターフェースが１こだけ。あとでvideod_interface_tに移動する
+
+  /* 4.2.1 Interface Control Request */
+  uint8_t const ctrl_sel = TU_U16_HIGH(request->wValue);
+  TU_LOG_DRV("%s_Control(%s)\r\n",  tu_str_video_vc_control_selector[ctrl_sel], tu_lookup_find(&tu_table_video_request, request->bRequest));
+
+  switch (ctrl_sel) {
+    case VIDEO_VC_PU_CTL_BRIGHTNESS:
+      switch (request->bRequest) {
+        case VIDEO_REQUEST_SET_CUR:
+          if (stage == CONTROL_STAGE_SETUP) {
+            TU_VERIFY(2 == request->wLength, VIDEO_ERROR_UNKNOWN);
+            TU_VERIFY(tud_control_xfer(rhport, request, (uint8_t*)(uintptr_t) &_brightness_cur, sizeof(_brightness_cur)), VIDEO_ERROR_UNKNOWN);
+          } else if (stage == CONTROL_STAGE_DATA) {
+            if (tud_video_processing_cb) tud_video_processing_cb(ctl_idx, request->bRequest, _brightness_cur);
+          }
+          return VIDEO_ERROR_NONE;
+        case VIDEO_REQUEST_GET_CUR:
+        case VIDEO_REQUEST_GET_MIN:
+        case VIDEO_REQUEST_GET_MAX:
+        case VIDEO_REQUEST_GET_DEF:
+          if (stage == CONTROL_STAGE_SETUP) {
+            int16_t buf = 0;
+            if (tud_video_processing_cb) buf = tud_video_processing_cb(ctl_idx, request->bRequest, 0);
+            TU_VERIFY(tud_control_xfer(rhport, request, (uint8_t*)(uintptr_t) &buf, sizeof(buf)), VIDEO_ERROR_UNKNOWN);
+          }
+          return VIDEO_ERROR_NONE;
+        case VIDEO_REQUEST_GET_RES:
+          if (stage == CONTROL_STAGE_SETUP) {
+            int16_t buf = 1; /* Fixed value for brightness */
+            TU_VERIFY(tud_control_xfer(rhport, request, (uint8_t*)(uintptr_t) &buf, sizeof(buf)), VIDEO_ERROR_UNKNOWN);
+          }
+          return VIDEO_ERROR_NONE;
+        case VIDEO_REQUEST_GET_INFO:
+          if (stage == CONTROL_STAGE_SETUP) {
+            int16_t buf = 3; /* support for GET and SET */
+            TU_VERIFY(tud_control_xfer(rhport, request, (uint8_t*)(uintptr_t) &buf, sizeof(buf)), VIDEO_ERROR_UNKNOWN);
+          }
+          return VIDEO_ERROR_NONE;
+
+        default: break;
+      }
+      break;
+
+    default: break;
+  }
+
+  /* Unknown/Unsupported request */
+  TU_BREAKPOINT();
+  return VIDEO_ERROR_INVALID_REQUEST;
+}
+
 static int handle_video_ctl_req(uint8_t rhport, uint8_t stage,
                                 tusb_control_request_t const *request,
                                 uint_fast8_t ctl_idx)

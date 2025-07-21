@@ -74,6 +74,13 @@ TU_ATTR_WEAK void tud_video_frame_xfer_complete_cb(uint_fast8_t ctl_idx, uint_fa
  * @return video_error_code_t */
 TU_ATTR_WEAK int tud_video_power_mode_cb(uint_fast8_t ctl_idx, uint8_t power_mod);
 
+/** BRIGHTNESS
+ *
+ * @param[in] ctl_idx     Destination control interface index
+ * @param[in] request     Control request
+ * @return int16_t */
+TU_ATTR_WEAK int16_t tud_video_processing_cb(uint_fast8_t ctl_idx, uint8_t bRequest, int16_t wValue);
+
 /** Invoked when VS_COMMIT_CONTROL(SET_CUR) request received
  *
  * @param[in] ctl_idx     Destination control interface index

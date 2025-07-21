@@ -164,6 +164,30 @@ typedef enum {
   VIDEO_VC_CTL_REQUEST_ERROR_CODE, // 0x02
 } video_interface_control_selector_t;
 
+/* A.9.5 Processing Unit Control Selectors */
+typedef enum {
+  VIDEO_VC_PU_CTL_UNDEFINED = 0x00,
+  VIDEO_VC_PU_CTL_BACKLIGHT_COMPENSATION,       // 0x01
+  VIDEO_VC_PU_CTL_BRIGHTNESS,                   // 0x02
+  VIDEO_VC_PU_CTL_CONTRAST,                     // 0x03
+  VIDEO_VC_PU_CTL_GAIN,                         // 0x04
+  VIDEO_VC_PU_CTL_POWER_LINE_FREQUENCY,         // 0x05
+  VIDEO_VC_PU_CTL_HUE,                          // 0x06
+  VIDEO_VC_PU_CTL_SATURATION,                   // 0x07
+  VIDEO_VC_PU_CTL_SHARPNESS,                    // 0x08
+  VIDEO_VC_PU_CTL_GAMMA,                        // 0x09
+  VIDEO_VC_PU_CTL_WHITE_BALANCE_TEMPERATURE,    // 0x0A
+  VIDEO_VC_PU_CTL_WHITE_BALANCE_COMPONENTS,     // 0x0B
+  VIDEO_VC_PU_CTL_WHITE_BALANCE_COMPONENT,      // 0x0C
+  VIDEO_VC_PU_CTL_WHITE_BALANCE_COMPONENT_AUTO, // 0x0D
+  VIDEO_VC_PU_CTL_DIGITAL_MULTIPLIER,           // 0x0E
+  VIDEO_VC_PU_CTL_DIGITAL_MULTIPLIER_LIMIT,     // 0x0F
+  VIDEO_VC_PU_CTL_HUE_AUTO,                     // 0x10
+  VIDEO_VC_PU_CTL_ANALOG_VIDEO_STANDARD,        // 0x11
+  VIDEO_VC_PU_CTL_ANALOG_LOCK_STATUS,           // 0x12
+  VIDEO_VC_PU_CTL_CONTRAST_AUTO,                // 0x13
+} video_processing_unit_control_selector_t;
+
 /* A.9.8 VideoStreaming Interface Control Selectors */
 typedef enum {
   VIDEO_VS_CTL_UNDEFINED = 0x00,
@@ -267,6 +291,21 @@ typedef struct TU_ATTR_PACKED {
 } tusb_desc_video_control_camera_terminal_t;
 
 TU_VERIFY_STATIC(sizeof(tusb_desc_video_control_camera_terminal_t) == 18, "size is not correct");
+
+typedef struct TU_ATTR_PACKED {
+  uint8_t  bLength;
+  uint8_t  bDescriptorType;
+  uint8_t  bDescriptorSubType;
+  uint8_t  bUnitID;
+  uint8_t  bSourceID;
+  uint16_t wMaxMultiplier;
+  uint8_t  bControlSize; /* Size of the bmControls field, in bytes: 3 */
+  uint8_t  bmControls[3]; /* Bit field for each control item */
+  uint8_t  iProcessing; /* Index of the string descriptor for this unit */
+  uint8_t  bmVideoStandards; /* Bit field for each video standard supported by this unit */
+} tusb_desc_video_control_processing_unit_t;
+
+TU_VERIFY_STATIC(sizeof(tusb_desc_video_control_processing_unit_t) == 13, "size is not correct");
 
 //--------------------------------------------------------------------+
 // Video Streaming (VS) Descriptors
