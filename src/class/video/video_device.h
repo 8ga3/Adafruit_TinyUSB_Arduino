@@ -56,6 +56,12 @@ bool tud_video_n_streaming(uint_fast8_t ctl_idx, uint_fast8_t stm_idx);
  * @param[in] bufsize    Byte size of the frame buffer */
 bool tud_video_n_frame_xfer(uint_fast8_t ctl_idx, uint_fast8_t stm_idx, void *buffer, size_t bufsize);
 
+/** Abort transfer
+ *
+ * @param[in] ctl_idx    Destination control interface index
+ * @param[in] stm_idx    Destination streaming interface index */
+bool tud_video_n_abort_transfer (uint_fast8_t ctl_idx, uint_fast8_t stm_idx);
+
 /*------------- Optional callbacks -------------*/
 /** Invoked when compeletion of a frame transfer
  *

@@ -1304,6 +1304,47 @@ bool tud_video_n_frame_xfer(uint_fast8_t ctl_idx, uint_fast8_t stm_idx, void *bu
   return true;
 }
 
+// Reference:
+// https://github.com/hathach/tinyusb/issues/1128
+bool tud_video_n_abort_transfer (uint_fast8_t ctl_idx, uint_fast8_t stm_idx)
+{
+  TU_ASSERT(ctl_idx < CFG_TUD_VIDEO);
+  TU_ASSERT(stm_idx < CFG_TUD_VIDEO_STREAMING);
+  videod_streaming_interface_t *stm = _get_instance_streaming(ctl_idx, stm_idx);
+  if (!stm || !stm->desc.ep[0]) return false;
+  if (stm->state == VS_STATE_PROBING) return false;
+
+  /* Find EP address */
+  uint8_t const *desc = _videod_itf[stm->index_vc].beg;
+  uint8_t ep_addr = 0;
+  for (uint_fast8_t i = 0; i < CFG_TUD_VIDEO_STREAMING; ++i) {
+    uint_fast16_t ofs_ep = stm->desc.ep[i];
+    if (!ofs_ep) continue;
+    ep_addr = _desc_ep_addr(desc + ofs_ep);
+    break;
+  }
+  if (!ep_addr) return false;
+
+  // Skip if usb is not ready yet
+  TU_VERIFY( tud_ready(), 0 );
+
+  // Claim the endpoint, if not marked busy
+  usbd_edpt_claim(0, ep_addr);
+
+  // Stall the endpoint
+  usbd_edpt_stall(0, ep_addr);
+
+  // Clear the stalled endpoint
+  usbd_edpt_clear_stall(0, ep_addr);
+
+  // Release the endpoint
+  usbd_edpt_release(0, ep_addr);
+
+  _init_vs_configuration(stm);
+
+  return true;
+}
+
 //--------------------------------------------------------------------+
 // USBD Driver API
 //--------------------------------------------------------------------+
